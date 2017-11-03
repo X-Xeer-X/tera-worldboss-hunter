@@ -1,8 +1,12 @@
-const mobzone = [6553610, 6553604, 3932217, 13107238, 6553652], 
-	mobtemplate = [99, 5011, 33, 35, 9050]; 
-	
+let	enabled=true, 
+	markenabled=true,  
+	alerted=false;	
+//Mob ids	
+const mobzone = [6553610, 6553604, 3932217, 13107238, 6552651, 6553652, 6553638], //zone id of mob
+	mobtemplate = [99, 5011, 33, 35, 7011, 9050, 35] 
+	custommsg= 'World Boss Alert' 
+
 module.exports = function markmob(dispatch) {
-	let markenabled=true;
 	let player,
 		ind;
 
@@ -16,42 +20,62 @@ module.exports = function markmob(dispatch) {
 	});
 	
 	dispatch.hook('C_CHAT', 1, event => {
-		if(/^<FONT>!wbmarker on<\/FONT>$/i.test(event.message)) {
-			markenabled=true,
-			message('World Boss marker enabled');
-		};
+		if(event.message.includes('!wb')) {
+			if(/^<FONT>!warn on<\/FONT>$/i.test(event.message)) {
+			enabled=true,
+			message('worldboss enabled');
+			};
 		
-		if(/^<FONT>!wbmarker off<\/FONT>$/i.test(event.message)) {
-			markenabled=false,
-			moblocation = [],
-			message('World boss marker disabled');
-		};
+			if(/^<FONT>!warn off<\/FONT>$/i.test(event.message)) {
+			enabled=false,
+			message('worldboss disabled');
+			};
 		
-		if(/^<FONT>!wbmarker clear<\/FONT>$/i.test(event.message)) {
-			for (i = 0; i < countarr.length; i++) {
-				despawnthis(countarr[i]),
+			if(/^<FONT>!warn alert<\/FONT>$/i.test(event.message)) {
+				if(!alerted) {
+					alerted=true,
+					message('worldboss alerts enabled'),
+					notice('worldboss alerts enabled');
+				}
+				else
+					alerted=false,
+					message('worldboss alerts disabled');
+			};
+			
+			if(/^<FONT>!warn marker<\/FONT>$/i.test(event.message)) {
+				if(!markenabled) {
+					markenabled=true,
+					message('worldboss marker enabled');
+				}
+				else
+					markenabled=false,
+					message('worldboss disabled');
+			};
+		
+			if(/^<FONT>!warn clear<\/FONT>$/i.test(event.message)) {
+				for (i = 0; i < countarr.length; i++) {
+					despawnthis(countarr[i]);
+				};
 				countarr=[],
 				moblocationx = [],
 				moblocationy = [],
-				moblocationz = [];
+				moblocationz = [],
+				message('worldboss clear attempted');
 			};
-			message('World boss marker clear attempted');
-		};
-		
-		if(event.message.includes('!wbmarker'))
 			return false;
+		};
 	});
 	
 	dispatch.hook('S_SPAWN_NPC', 3, (event) => {
-		if(markenabled && (mobzone.includes(event.huntingZoneId) && mobtemplate.includes(event.templateId))) { 
+		if(enabled && (mobzone.includes(event.huntingZoneId) && mobtemplate.includes(event.templateId))) { 
 			for (i = 0; i < (moblocationx.length+1); i++) { 
 				if (i === moblocationx.length) {
 					moblocationx[i] = event.x,
 					moblocationy[i] = event.y,
 					moblocationz[i] = event.z,
 					countarr[i]= (player+1+(i)),
-					ind=(i),
-					markthis(countarr[i],ind);
+					markthis(countarr[i],(i)),
+					messenger();
 					break;
 				};
 			};
@@ -64,21 +88,33 @@ module.exports = function markmob(dispatch) {
 			despawnthis(countarr[ind]),
 			moblocationx.splice(ind,1),
 			moblocationy.splice(ind,1),
-			moblocationz.splice(ind,1);
+			moblocationz.splice(ind,1),
+			countarr.splice(ind,1);
 		};
 	}); 
 	
+	function messenger() {
+		if(alerted) {
+				notice('Found'+' '+custommsg),
+				message('Found'+' '+custommsg);
+			}
+			else
+				message('Found'+' '+custommsg);
+	};
+	
 	function markthis(targetid,inx) {
-		dispatch.toClient('S_SPAWN_DROPITEM', 1, {
-			id: targetid,
-			x: moblocationx[inx],
-			y: moblocationy[inx],
-			z: moblocationz[inx],
-			item: 369,
-			amount: 1,
-			expiry: 999999,
-			owners: [{id: player}]
-		});	
+		if(markenabled) {
+			dispatch.toClient('S_SPAWN_DROPITEM', 2, {
+				id: targetid,
+				x: moblocationx[inx],
+				y: moblocationy[inx],
+				z: moblocationz[inx],
+				item: 369,  //item id
+				amount: 9999999,
+				expiry: 300000, //expiry time,milseconds (300000=5 mins?)
+				owners: [{id: player}]
+			});	
+		};
 	};
 		
 	function despawnthis(despawnid) {
@@ -95,8 +131,18 @@ module.exports = function markmob(dispatch) {
 			unk1: 0,
 			gm: 0,
 			unk2: 0,
-			authorName: 'World boss marker',
-			message: '(Proxy)' + msg
+			authorName: '',
+			message: msg
 		})
 	};
+	
+	function notice(msg) {
+		dispatch.toClient('S_DUNGEON_EVENT_MESSAGE', 1, {
+            unk1: 2,
+            unk2: 0,
+            unk3: 0,
+            message: msg
+        });
+    };
 };
+
