@@ -1,10 +1,10 @@
-let	enabled=true, 
-	markenabled=true,  
-	alerted=false;	
+let	enabled=true, //default enabling of module  (default true)
+	markenabled=true,  //default enabling of markers	(default true)
+	alerted=false;	//default enabling of system notice (default false)
 //Mob ids	
-const mobzone = [6553610, 6553604, 3932217, 13107238, 6552651, 6553652, 6553638], //zone id of mob
-	mobtemplate = [99, 5011, 33, 35, 7011, 9050, 35] 
-	custommsg= 'World Boss Alert' 
+const mobzone = [6553610, 6553604, 3932217, 13107238, 6553651, 6553652], //zone id of mob
+	mobtemplate = [99, 5011, 33, 35, 7011, 9050] 
+	custommsg= 'World Boss Alert' //change custom message here
 
 module.exports = function markmob(dispatch) {
 	let player,
@@ -110,7 +110,7 @@ module.exports = function markmob(dispatch) {
 				y: moblocationy[inx],
 				z: moblocationz[inx],
 				item: 369,  //item id
-				amount: 9999999,
+				amount: 1,
 				expiry: 300000, //expiry time,milseconds (300000=5 mins?)
 				owners: [{id: player}]
 			});	
@@ -132,7 +132,7 @@ module.exports = function markmob(dispatch) {
 			gm: 0,
 			unk2: 0,
 			authorName: '',
-			message: msg
+			message: '(Proxy)' + msg
 		})
 	};
 	
@@ -141,8 +141,7 @@ module.exports = function markmob(dispatch) {
             unk1: 2,
             unk2: 0,
             unk3: 0,
-            message: msg
+            message: '(Proxy)' + msg
         });
     };
 };
-
