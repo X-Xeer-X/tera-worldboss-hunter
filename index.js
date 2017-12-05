@@ -2,7 +2,7 @@ let	enabled=true, //default enabling of module  (default true)
 	markenabled=true,  //default enabling of markers	(default true)
 	alerted=false;	//default enabling of system notice (default false)
 //Mob ids	
-const mobzone = [6553610, 6553604, 3932217, 13107238, 6553651, 6553652], //zone id of mob
+const mobzone = [6553610, 6553604, 3932217, 13107238, 13107251, 6553652], //zone id of mob
 	mobtemplate = [99, 5011, 33, 35, 7011, 9050] 
 	custommsg= 'World Boss Alert' //change custom message here
 
